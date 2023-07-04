@@ -1,0 +1,21 @@
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+url = 'https://finance.rambler.ru/currencies/'
+response = requests.get(url)
+soup = BeautifulSoup(response.content, 'html.parser')
+data = [['Код', 'Номинал', 'Название валюты', 'Курс ЦБ', 'Изменения', '%']]
+currency_table = soup.find('table', {'class': 'finance-currency-table_table'}).find('tbody')
+rows = currency_table.find_all('tr')
+for row in rows:
+    code = row.find('td', {'class': 'finance-currency-table_code'}).text
+    nominal = row.find('td', {'class': 'finance-currency-table_nominal'}).text
+    currency_name = row.find('td', {'class': 'finance-currency-table_currency'}).text
+    exchange_rate = row.find('td', {'class': 'finance-currency-table_rate'}).text
+    changes = row.find('td', {'class': 'finance-currency-table_changes'}).text
+    percent_changes = row.find('td', {'class': 'finance-currency-table_percent_changes'}).text
+    data.append([code, nominal, currency_name, exchange_rate, changes, percent_changes])
+    with open('currency_rates.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
